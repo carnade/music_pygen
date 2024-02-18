@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playlist Form</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="form-container">
+        <h2>Enter Playlist URL and Card Limit</h2>
+        <form action="/generate" method="post">
+            <div class="input-field">
+                <i class="material-icons prefix">playlist_play</i>
+                <input type="text" id="playlist_url" name="playlist_url" required>
+                <label for="playlist_url">Playlist URL</label>
+            </div>
+            <div class="input-field">
+                <i class="material-icons prefix">format_list_numbered</i>
+                <input type="number" id="card_limit" name="card_limit" min="1" required>
+                <label for="card_limit">Card Limit</label>
+            </div>
+            <button type="submit" class="submit-btn">Generate Cards</button>
+        </form>
+    </div>
+    <div class="music-note note1">♪</div>
+    <div class="music-note note2">♫</div>
+    <div class="music-note note3">♬</div>
+    <div class="music-note note4">♪</div>
+    <div class="music-note note5">♫</div>
+</body>
+</html>

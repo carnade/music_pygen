@@ -2,6 +2,7 @@ import qrcode
 import spotipy
 import json
 import os
+import random
 from dotenv import load_dotenv
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
@@ -39,9 +40,13 @@ def fetch_spotify_data(client_id, client_secret, playlist_url, limit=100, mock_f
 
         playlist_id = playlist_url.split("/")[-1].split("?")[0]  # Adjust based on your playlist URL format
 
-        results = sp.playlist_items(playlist_id, market="SE", limit=limit)
+        results = sp.playlist_items(playlist_id, market="SE")
 
-    for item in results['items']:
+    random_limit = len(results.get("items")) if len(results.get("items")) < limit else limit
+
+    results_subset = random.sample(results.get("items"), random_limit)
+
+    for item in results_subset:
         track = item['track']
         artist_name = track['artists'][0]['name']  # Assuming the first artist if there are multiple
         song_title = track['name']
@@ -161,29 +166,9 @@ def create_pdf(data, filename=None, row_size=8):
         return None
 
 
-HTML_FORM = '''
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Playlist to Cards</title>
-    </head>
-    <body>
-        <h2>Enter Playlist URL and Card Limit</h2>
-        <form action="/generate" method="post">
-            Playlist URL:<br>
-            <input type="text" name="playlist_url"><br>
-            Card Limit (max 100):<br>
-            <input type="number" name="card_limit" min="1"><br><br>
-            <input type="submit" value="Generate Cards">
-        </form>
-    </body>
-    </html>
-    '''
-
-
 @app.route('/')
 def home():
-    return HTML_FORM
+    return render_template('form.html')
 
 @app.route('/generate', methods=['POST'])
 def generate_cards():
@@ -197,7 +182,7 @@ def generate_cards():
                                        spotify_secret,
                                        playlist_url,
                                        int(card_limit)
-                                       ,"mock_data.json"
+                                       #,"mock_data.json"
                                         )
     response = create_pdf(playlist_data, row_size=6)
 
