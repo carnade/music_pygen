@@ -28,12 +28,16 @@ def generate_qr_code(url, filename):
     img = qr.make_image(fill_color="black", back_color="white")
     img.save(filename)
 
-def fetch_spotify_data(client_id, client_secret, playlist_url, limit=100, mock_filename=None):
+def fetch_spotify_data(client_id, client_secret, playlist_url, limit=100, year_from = 1800, year_to = 2222, mock_filename=None):
+    if year_from is None:
+        year_from=1800
+    if year_to is None:
+        year_to=2222
     songs_data = []
     results = []
     if mock_filename is not None:
         with open(mock_filename, 'r') as file:
-            results.append = json.load(file)
+            results.append(json.load(file))
     else:
         client_credentials_manager = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
         #sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id, client_secret=client_secret, scope="playlist-read-private"))
@@ -49,24 +53,36 @@ def fetch_spotify_data(client_id, client_secret, playlist_url, limit=100, mock_f
             p+=1
 
     item_list = [item for d in results for item in d['items']]
+    '''
+    filtered_items = [
+        item for item in item_list
+        if year_from <= int(item['track']['album']['release_date'][:4]) <= year_to
+    ]'''
 
+    filtered_items = [
+        item for item in item_list
+        if year_from <= int(item['track']['album']['release_date'][:4]) <= year_to
+    ]
 
     #random_limit = len(results.get("items")) if len(results.get("items")) < limit else limit
-    random_limit = len(item_list) if len(item_list) < limit else limit
+    random_limit = len(filtered_items) if len(filtered_items) < limit else limit
 
-    results_subset = random.sample(item_list, random_limit)
+    results_subset = random.sample(filtered_items, random_limit)
+
 
     for item in results_subset:
         track = item['track']
         artist_name = track['artists'][0]['name']  # Assuming the first artist if there are multiple
         song_title = track['name']
         release_date = track['album']['release_date']  # This gives the release date; you might want just the year
+        album_name = track['album']['name']
         release_year = release_date.split("-")[0]  # Assuming the format is YYYY-MM-DD
 
         songs_data.append({
             "artist": artist_name,
             "song": song_title,
             "year": release_year,
+            "album_name": album_name,
             "link": track['external_urls']['spotify']  # Link to the song on Spotify
         })
 
@@ -74,7 +90,7 @@ def fetch_spotify_data(client_id, client_secret, playlist_url, limit=100, mock_f
     return songs_data
 
 
-def create_pdf(data, filename=None, row_size=8):
+def create_pdf(data, filename=None, row_size=6):
     # A4 dimensions in landscape
     landscape_A4 = A4[1], A4[0]
     width, height = landscape_A4
@@ -133,12 +149,13 @@ def create_pdf(data, filename=None, row_size=8):
             text_lines = [
                 f"{item['year']}",
                 f"{item['artist']}",
-                f"{item['song']}"
+                f"{item['song']}",
+                f"{item['album_name']}"
             ]
             text_y_start = y-10
 
             year_text = f"<b>{item['year']}</b>"
-            text = f"<b>{item['artist']}</b><br/><br/>{item['song']}"
+            text = f"<b>{item['artist']}</b><br/><br/>{item['song']}<br/><br/>{item['album_name']}"
             p1 = Paragraph(year_text, style=year_style)
             p2 = Paragraph(text, style=styles["Normal"])
 
@@ -184,6 +201,9 @@ def home():
 def generate_cards():
     playlist_url = request.form.get('playlist_url')
     card_limit = request.form.get('card_limit')
+    cards_per_row = request.form.get('cards_per_row')
+    year_from = request.form.get('years_from')
+    year_to = request.form.get('years_to')
 
     load_dotenv()  # This loads the variables from .env
     spotify_id = os.getenv('SPOTIFY_ID')
@@ -191,10 +211,12 @@ def generate_cards():
     playlist_data = fetch_spotify_data(spotify_id,
                                        spotify_secret,
                                        playlist_url,
-                                       int(card_limit)
-                                       #,"mock_data.json"
+                                       int(card_limit),
+                                       int(year_from),
+                                       int(year_to)
+                                       ,"mock_data.json"
                                         )
-    response = create_pdf(playlist_data, row_size=6)
+    response = create_pdf(playlist_data, row_size=int(cards_per_row))
 
     return response
 

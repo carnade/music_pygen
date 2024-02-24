@@ -18,8 +18,23 @@
             </div>
             <div class="input-field">
                 <i class="material-icons prefix">format_list_numbered</i>
-                <input type="number" id="card_limit" name="card_limit" min="1" required>
+                <input type="number" id="card_limit" name="card_limit" min="1" value="18" required>
                 <label for="card_limit">Card Limit</label>
+            </div>
+            <div class="input-field">
+                <i class="material-icons prefix">format_list_numbered</i>
+                <input type="number" id="cards_per_row" name="cards_per_row" min="1" value="6"required>
+                <label for="cards_per_row">Card per row</label>
+            </div>
+            <div class="input-field">
+                <i class="material-icons prefix">format_list_numbered</i>
+                <input type="number" id="years_from" name="years_from" min="1">
+                <label for="years_from">Years from</label>
+            </div>
+            <div class="input-field">
+                <i class="material-icons prefix">format_list_numbered</i>
+                <input type="number" id="years_to" name="years_to" min="1">
+                <label for="years_to">Years from</label>
             </div>
             <button type="submit" class="submit-btn">Generate Cards</button>
         </form>
