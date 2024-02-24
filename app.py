@@ -192,6 +192,12 @@ def create_pdf(data, filename=None, row_size=6):
         pdf_buffer.close()
         return None
 
+def safe_int_cast(value, default=0):
+    """Attempt to convert a value to an integer. Return a default value if the conversion fails."""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
 
 @app.route('/')
 def home():
@@ -212,8 +218,8 @@ def generate_cards():
                                        spotify_secret,
                                        playlist_url,
                                        int(card_limit),
-                                       int(year_from),
-                                       int(year_to)
+                                       safe_int_cast(year_from, 1800),
+                                       safe_int_cast(year_to, 2222)
                                        ,"mock_data.json"
                                         )
     response = create_pdf(playlist_data, row_size=int(cards_per_row))
