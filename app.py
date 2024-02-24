@@ -30,9 +30,10 @@ def generate_qr_code(url, filename):
 
 def fetch_spotify_data(client_id, client_secret, playlist_url, limit=100, mock_filename=None):
     songs_data = []
+    results = []
     if mock_filename is not None:
         with open(mock_filename, 'r') as file:
-            results = json.load(file)
+            results.append = json.load(file)
     else:
         client_credentials_manager = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
         #sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id, client_secret=client_secret, scope="playlist-read-private"))
@@ -40,11 +41,20 @@ def fetch_spotify_data(client_id, client_secret, playlist_url, limit=100, mock_f
 
         playlist_id = playlist_url.split("/")[-1].split("?")[0]  # Adjust based on your playlist URL format
 
-        results = sp.playlist_items(playlist_id, market="SE")
+        p = 0
+        while True:
+            results.append(sp.playlist_items(playlist_id, market="SE", offset=p * 100))
+            if results[p].get("next") is None:
+                break
+            p+=1
 
-    random_limit = len(results.get("items")) if len(results.get("items")) < limit else limit
+    item_list = [item for d in results for item in d['items']]
 
-    results_subset = random.sample(results.get("items"), random_limit)
+
+    #random_limit = len(results.get("items")) if len(results.get("items")) < limit else limit
+    random_limit = len(item_list) if len(item_list) < limit else limit
+
+    results_subset = random.sample(item_list, random_limit)
 
     for item in results_subset:
         track = item['track']
