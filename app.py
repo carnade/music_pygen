@@ -15,6 +15,13 @@ from io import BytesIO
 
 app = Flask(__name__)
 
+def try_parse_int(s):
+    """Attempt to convert a string to an integer. Return None if conversion fails."""
+    try:
+        return int(s)
+    except ValueError:
+        return None
+
 def generate_qr_code(url, filename):
     qr = qrcode.QRCode(
         version=1,
@@ -61,7 +68,10 @@ def fetch_spotify_data(client_id, client_secret, playlist_url, limit=100, year_f
 
     filtered_items = [
         item for item in item_list
-        if year_from <= int(item['track']['album']['release_date'][:4]) <= year_to
+        if 'track' in item and 'album' in item['track'] and 'release_date' in item['track']['album'] and
+           item['track']['album']['release_date']
+           and try_parse_int(item['track']['album']['release_date'][:4]) is not None
+           and year_from <= try_parse_int(item['track']['album']['release_date'][:4]) <= year_to
     ]
 
     #random_limit = len(results.get("items")) if len(results.get("items")) < limit else limit
@@ -220,7 +230,7 @@ def generate_cards():
                                        int(card_limit),
                                        safe_int_cast(year_from, 1800),
                                        safe_int_cast(year_to, 2222)
-                                       ,"mock_data.json"
+                                       #,"mock_data.json"
                                         )
     response = create_pdf(playlist_data, row_size=int(cards_per_row))
 
