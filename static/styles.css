@@ -83,6 +83,20 @@ body {
     }
 }
 
+/* Animation for music notes */
+@keyframes float_down {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+        transform-origin: left;
+    }
+    100% {
+        transform: translateY(800px) rotate(720deg);
+        opacity: 0;
+        transform-origin: right;
+    }
+}
+
 .music-note {
     position: absolute;
     bottom: -100px; /* Start off-screen */
@@ -91,6 +105,14 @@ body {
     color: white;
     animation: float 10s ease-in infinite;
 }
+.music-note-top {
+    position: absolute;
+    top: -100px; /* Start off-screen */
+    opacity: 0; /* Start faded out */
+    font-size: 2em;
+    color: white;
+    animation: float_down 10s ease-in infinite;
+}
 
 /* Individual animations */
 .note1 { left: 10%; animation-delay: 0s; }
@@ -98,3 +120,8 @@ body {
 .note3 { left: 30%; animation-delay: 5s; }
 .note4 { left: 40%; animation-delay: 7s; }
 .note5 { left: 50%; animation-delay: 9s; }
+.note6 { right: 10%; animation-delay: 2s; }
+.note7 { right: 20%; animation-delay: 4s; }
+.note8 { right: 30%; animation-delay: 6s; }
+.note9 { right: 40%; animation-delay: 8s; }
+.note10 { right: 50%; animation-delay: 11s; }
