@@ -3,17 +3,20 @@ import spotipy
 import json
 import os
 import random
+import pymongo
 from dotenv import load_dotenv
+from pymongo import MongoClient
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
 from spotipy.oauth2 import SpotifyClientCredentials
 from reportlab.platypus import Paragraph
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from flask import Flask, request, make_response, render_template
+from flask import Flask, request, make_response, render_template, jsonify
 from io import BytesIO
 
 app = Flask(__name__)
+load_dotenv()
 
 def try_parse_int(s):
     """Attempt to convert a string to an integer. Return None if conversion fails."""
@@ -209,6 +212,53 @@ def safe_int_cast(value, default=0):
     except (TypeError, ValueError):
         return default
 
+
+# Function to flatten playlists and filter songs
+def flatten_and_filter_playlists(data):
+    all_songs = []
+
+    for playlist in data['playlists']:
+        # Randomize the order of songs
+        random.shuffle(playlist['songs'])
+
+        # Filter songs by year and apply the count limit
+        filtered_songs = [
+                song for song in playlist['songs']
+                    if playlist['yearFrom'] <= song['year'] <= playlist['yearTo']
+            ][:playlist['count']]
+
+        # Add filtered songs to the all_songs list
+        all_songs.extend(filtered_songs)
+
+    return all_songs
+
+# Endpoint to process playlists and store in MongoDB
+def process_and_store_quiz(flattened_songs):
+
+    mongo_user = os.getenv('MONGO_USER')
+    mongo_password = os.getenv('MONGO_PASSWORD')
+    mongo_ip = os.getenv('MONGO_IP')
+    mongo_port = os.getenv('MONGO_PORT')
+    mongo_db = os.getenv('MONGO_DB')
+    mongo_collection = os.getenv('MONGO_COLLECTION')
+    data = request.get_json()
+    client = MongoClient("mongodb://" + mongo_user + ":" + mongo_password + "@" + mongo_ip + ":" + mongo_port + "/")
+    db = client[mongo_db]
+    collection = db[mongo_collection]
+
+
+    if flattened_songs:
+        collection.insert_many(flattened_songs)
+
+
+
+    # Insert data into MongoDB
+    if flattened_songs:
+        collection.insert_many(flattened_songs)
+
+    return
+
+
 @app.route('/')
 def home():
     return render_template('form.html')
@@ -221,7 +271,7 @@ def generate_cards():
     year_from = request.form.get('years_from')
     year_to = request.form.get('years_to')
 
-    load_dotenv()  # This loads the variables from .env
+    #load_dotenv()  # This loads the variables from .env
     spotify_id = os.getenv('SPOTIFY_ID')
     spotify_secret = os.getenv('SPOTIFY_SECRET')
     playlist_data = fetch_spotify_data(spotify_id,
@@ -235,6 +285,32 @@ def generate_cards():
     response = create_pdf(playlist_data, row_size=int(cards_per_row))
 
     return response
+
+@app.route('/quiz/create', methods=['POST'])
+def create_quiz():
+
+    flattened_songs = flatten_and_filter_playlists(request.get_json())
+    process_and_store_quiz(flattened_songs)
+
+    return jsonify({"message": "Data processed and stored successfully"}), 200
+
+@app.route('/quiz/create/preview', methods=['POST'])
+def create_preview_quiz():
+
+    flattened_songs = flatten_and_filter_playlists(request.get_json())
+    process_and_store_quiz(flattened_songs)
+
+    return jsonify({"message": "Data processed and stored successfully"}), 200
+@app.route('/quiz', methods=['GET'])
+def get_quiz_list():
+    return
+@app.route('/quiz/<quiz_id>', methods=['GET'])
+def get_quiz(quiz_id):
+    return
+
+@app.route('/quiz/<quiz_id>/stats', methods=['GET'])
+def get_quiz_stats(quiz_id):
+    return
 
 if __name__ == '__main__':
     app.run(debug=True)

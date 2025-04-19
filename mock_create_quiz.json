@@ -1,0 +1,31 @@
+{
+  "username": "testuser",
+  "playlists": [
+    {
+      "yearFrom": 1977,
+      "yearTo": 2008,
+      "count": 123,
+      "songs": [
+        {
+          "title": "The song title A",
+          "album": "The album A",
+          "year": 2009,
+          "genre": "rock"
+        }
+      ]
+    },
+    {
+      "yearFrom": 1977,
+      "yearTo": 2008,
+      "count": 123,
+      "songs": [
+        {
+          "title": "The song title B",
+          "album": "The album B",
+          "year": 1232,
+          "genre": "rock"
+        }
+      ]
+    }
+  ]
+}
